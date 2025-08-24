@@ -1,0 +1,96 @@
+name: Test CI/CD Dashboard Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Test Type'
+        required: true
+        default: 'success'
+        type: choice
+        options:
+          - success
+          - fail
+      pipeline_name:
+        description: 'Pipeline Name'
+        required: true
+        default: 'Test Pipeline'
+        type: string
+
+jobs:
+  test-pipeline:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set pipeline status
+        id: set-status
+        run: |
+          if [ "${{ github.event.inputs.test_type }}" = "fail" ]; then
+            echo "status=failed" >> $GITHUB_OUTPUT
+            echo "exit_code=1"
+          else
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "exit_code=0"
+          fi
+          
+      - name: Simulate pipeline work
+        run: |
+          echo "🚀 Starting pipeline: ${{ github.event.inputs.pipeline_name }}"
+          echo "📊 Test type: ${{ github.event.inputs.test_type }}"
+          echo "⏱️  Pipeline started at: $(date)"
+          
+          # Simulate some work
+          echo "🔧 Installing dependencies..."
+          sleep 5
+          
+          echo "🧪 Running tests..."
+          sleep 3
+          
+          echo "📦 Building application..."
+          sleep 4
+          
+          if [ "${{ github.event.inputs.test_type }}" = "fail" ]; then
+            echo "❌ Pipeline failed as requested!"
+            exit 1
+          else
+            echo "✅ Pipeline completed successfully!"
+          fi
+          
+      - name: Send webhook to dashboard
+        if: always()
+        run: |
+          # Get pipeline ID from dashboard (you'll need to create this first)
+          PIPELINE_ID=${PIPELINE_ID:-1}
+          
+          # Calculate timestamps
+          START_TIME=$(date -d "${{ github.event.workflow.created }}" +%s)
+          END_TIME=$(date +%s)
+          
+          # Send webhook to your dashboard
+          curl -X POST http://localhost:3000/api/webhooks \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"pipeline_id\": $PIPELINE_ID,
+              \"build_number\": \"${{ github.run_number }}\",
+              \"status\": \"${{ steps.set-status.outputs.status }}\",
+              \"start_time\": $START_TIME,
+              \"end_time\": $END_TIME
+            }" || echo "Webhook failed to send"
+            
+      - name: Send email notification on failure
+        if: failure()
+        run: |
+          echo "📧 Sending failure notification email..."
+          # This will be handled by your dashboard's email service
+          
+      - name: Pipeline result
+        if: always()
+        run: |
+          if [ "${{ steps.set-status.outputs.status }}" = "success" ]; then
+            echo "🎉 Pipeline completed successfully!"
+          else
+            echo "💥 Pipeline failed as expected!"
+          fi
