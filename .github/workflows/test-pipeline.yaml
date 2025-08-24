@@ -27,7 +27,6 @@ jobs:
         
       - name: Set pipeline status
         id: set-status
-        shell: bash
         run: |
           if [ "${{ github.event.inputs.test_type }}" = "fail" ]; then
             echo "status=failed" >> $GITHUB_OUTPUT
@@ -38,7 +37,6 @@ jobs:
           fi
           
       - name: Simulate pipeline work
-        shell: bash
         run: |
           echo "🚀 Starting pipeline: ${{ github.event.inputs.pipeline_name }}"
           echo "📊 Test type: ${{ github.event.inputs.test_type }}"
@@ -63,7 +61,6 @@ jobs:
           
       - name: Send webhook to dashboard
         if: always()
-        shell: bash
         run: |
           # Get pipeline ID from dashboard (you'll need to create this first)
           PIPELINE_ID=${PIPELINE_ID:-1}
@@ -85,14 +82,12 @@ jobs:
             
       - name: Send email notification on failure
         if: failure()
-        shell: bash
         run: |
           echo "📧 Sending failure notification email..."
           # This will be handled by your dashboard's email service
           
       - name: Pipeline result
         if: always()
-        shell: bash
         run: |
           if [ "${{ steps.set-status.outputs.status }}" = "success" ]; then
             echo "🎉 Pipeline completed successfully!"
