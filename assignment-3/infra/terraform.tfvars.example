@@ -1,0 +1,19 @@
+project_name       = "cicd-dashboard"
+aws_region         = "us-east-1"
+container_image    = "docker.io/youruser/dashboard:latest"
+
+# Provide one of the following for SSH access
+# ssh_key_name     = "your-existing-keypair-name"
+# OR
+# ssh_public_key   = "ssh-ed25519 AAAA... you@host"
+
+# Optional RDS
+# enable_rds       = true
+# rds_instance_class = "db.t3.micro"
+# rds_username     = "appuser"
+# rds_password     = "ChangeMeStrongPassw0rd!"
+
+# Optional container environment
+# container_env = {
+#   NODE_ENV = "production"
+# }
